@@ -12,7 +12,6 @@ import GPUtil
 import socket
 import time, datetime
 
-key = "Password9!"
 Time = datetime.datetime.now()
 stoppingTime = Time + datetime.timedelta(seconds=20)
 
@@ -141,8 +140,6 @@ def clearContent(file):
     print("")
 
 # email setup
-# username = "godwillonyewuchii@gmail.com";
-# emailPass = "09092238604";
 # smtpConfig = {
 #   host: "smtp.gmail.com",
 #   port: 465,
