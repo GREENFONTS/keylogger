@@ -1,13 +1,3 @@
 {
-  "files.exclude": {
-    "**/.git": true,
-    "**/.svn": true,
-    "**/.hg": true,
-    "**/CVS": true,
-    "**/.DS_Store": true,
-    // "**/*.txt": true,
-    "**/*.wav": false,
-    "**/*.png": false
-  },
-  "python.pythonPath": "C:\\Users\\Onyebuchi\\AppData\\Local\\Programs\\Python\\Python39\\python.exe"
+    "python.pythonPath": "C:\\Users\\Onyebuchi\\AppData\\Local\\Programs\\Python\\Python39\\python.exe"
 }
