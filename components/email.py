@@ -10,7 +10,7 @@ from services import connection, clearContent
 
 # email setup
 
-def send_email(filePath, setInterval):
+def send_email(filePath):
     sender_mail = os.getenv('EMAIL')
     reciever_mail = os.getenv('EMAIL')
     message = MIMEMultipart()
@@ -23,6 +23,7 @@ def send_email(filePath, setInterval):
 
     message.attach(MIMEText(mail_content, 'plain'))
     for file in filePath:
+        print(file)
         attach_file_name = file
         attach_file = open(attach_file_name, 'rb')
         payload = MIMEBase('application', 'octate-stream')
@@ -32,7 +33,6 @@ def send_email(filePath, setInterval):
                         'attachment', filename=attach_file_name)
         message.attach(payload)
 
-    try:
         if connection.internet_conn():
             password = os.getenv('PASSWORD')
             smtpObj = smtplib.SMTP('smtp.gmail.com', 587)
@@ -44,6 +44,8 @@ def send_email(filePath, setInterval):
             smtpObj.quit()
             clearContent.clearContent(filePath)
             print('email sent successfully')
+        else:
+            print(";enetered")
+            clearContent.clearContent(filePath)
             
-    except Exception as e:
-        setInterval(90)
+    

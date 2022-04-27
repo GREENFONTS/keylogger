@@ -1,5 +1,3 @@
-import imp
-import sys
 import http.client as httplib
 
 #check internet connection
@@ -11,5 +9,3 @@ def internet_conn(url='www.google.com', timeout=3):
         return True
     except Exception as e:
         return False
-
-sys.modules[__name__] = internet_conn

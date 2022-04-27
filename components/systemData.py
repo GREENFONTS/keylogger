@@ -1,4 +1,3 @@
-import sys
 import psutil
 import GPUtil
 import platform
@@ -45,11 +44,9 @@ def system_Data():
     Ip address: {IP_Address}\n
     Netmask: {Netmask}\n
     BroadcastIp : {BroadcastIP}\n
-    Installed GPU : {age_name if gpus != []  else 'No GPU found'}
-    GPU memory: {age_memory if gpus != [] else 'No GPU found'}
+    Installed GPU : {gpu_name if gpus != []  else 'No GPU found'}
+    GPU memory: {gpu_memory if gpus != [] else 'No GPU found'}
     '''
     file1 = open('system_Information_file.txt', 'a')
     file1.write(body)
     file1.close()
-
-sys.modules[__name__] = system_Data

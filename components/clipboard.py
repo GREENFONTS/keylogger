@@ -2,7 +2,7 @@ import sys
 from tkinter import Tk
 
 # copying of clipboard textn
-def clipboard_func():
+def clipboard():
     try:
         data = Tk().clipboard_get()
     except Exception:
@@ -10,5 +10,3 @@ def clipboard_func():
     file1 = open('clipboard_file.txt', "a")
     file1.write(data)
     file1.close()
-
-sys.modules[__name__] = clipboard_func

@@ -1,5 +1,5 @@
-import sys
 import sounddevice as sd
+from scipy.io.wavfile import write
 
 # recording audio
 def sound(count):
@@ -10,5 +10,3 @@ def sound(count):
     myrecording = sd.rec(int(duration * fs))
     sd.wait()
     write("soundrecord.wav", fs, myrecording)
-
-sys.modules[__name__] = sound
